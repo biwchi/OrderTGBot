@@ -17,7 +17,7 @@ model User {
   phoneNumber     String
   deliveryAddress String
   role            Role          @default(USER)
-  Order           Order[]
+  orders          Order[]
 }
 
 model OrderAddress {
