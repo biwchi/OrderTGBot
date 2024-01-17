@@ -24,12 +24,24 @@ const menuData: Prisma.MenuCreateInput = {
   },
 };
 
+const addressesData: Prisma.OrderAddressCreateInput[] = [
+  {
+    deliveryPrice: 500,
+    title: "Сатпаева",
+  },
+];
+
 async function main() {
   const menu = await prisma.menu.create({
     data: menuData,
+  });
+
+  const addresses = await prisma.orderAddress.createMany({
+    data: addressesData,
   })
 
-  console.log(menu)
+  console.log(menu);
+  console.log(addresses)
 }
 
 main()

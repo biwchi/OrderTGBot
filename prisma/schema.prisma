@@ -9,7 +9,6 @@ datasource db {
 
 model User {
   id              Int           @id @default(autoincrement())
-  orderAddress    OrderAddress?
   telegramId      Int           @unique
   firstName       String
   lastName        String?
@@ -18,23 +17,24 @@ model User {
   deliveryAddress String
   role            Role          @default(USER)
   orders          Order[]
+  orderAddress    OrderAddress?
 }
 
 model OrderAddress {
   id            Int    @id @default(autoincrement())
   title         String
   deliveryPrice Int
-  user          User   @relation(fields: [userId], references: [id])
-  userId        Int    @unique
+  userId        Int?   @unique
+  user          User?  @relation(fields: [userId], references: [id])
 }
 
 model Order {
   id          Int       @id @default(autoincrement())
-  createdBy   User      @relation(fields: [createdById], references: [id])
   createdById Int
   createdAt   DateTime  @default(now())
   totalPrice  Int
   comment     String?
+  createdBy   User      @relation(fields: [createdById], references: [id])
   products    Product[]
 }
 
@@ -46,8 +46,8 @@ model Menu {
 model Category {
   id       Int       @id @default(autoincrement())
   title    String
-  menu     Menu      @relation(fields: [menuId], references: [id])
   menuId   Int
+  menu     Menu      @relation(fields: [menuId], references: [id])
   products Product[]
 }
 
@@ -57,27 +57,27 @@ model Product {
   description     String
   price           Int
   picture         String?
-  additionalGroup AdditionalGroup[]
-  order           Order?            @relation(fields: [orderId], references: [id])
   orderId         Int?
-  category        Category?         @relation(fields: [categoryId], references: [id])
   categoryId      Int?
+  additionalGroup AdditionalGroup[]
+  category        Category?         @relation(fields: [categoryId], references: [id])
+  order           Order?            @relation(fields: [orderId], references: [id])
 }
 
 model AdditionalGroup {
   id          Int          @id @default(autoincrement())
   title       String
+  productId   Int?
   additionals Additional[]
   product     Product?     @relation(fields: [productId], references: [id])
-  productId   Int?
 }
 
 model Additional {
   id                Int              @id @default(autoincrement())
   title             String
   price             Int
-  additionalGroup   AdditionalGroup? @relation(fields: [additionalGroupId], references: [id])
   additionalGroupId Int?
+  additionalGroup   AdditionalGroup? @relation(fields: [additionalGroupId], references: [id])
 }
 
 enum Role {
