@@ -1,16 +1,13 @@
-import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
 import { createServer } from "http";
-import application from "./application";
+import expressApplication from "./express";
+import bot from "./bot";
 
 dotenv.config();
-
-const botToken = process.env.BOT_TOKEN || "";
-
-const bot = new Telegraf(botToken);
-const server = createServer(application.instance);
-
 bot.launch();
+
+const server = createServer(expressApplication.instance);
+
 server.listen(process.env.PORT || 3000, () =>
   console.log(`Server started on port ${process.env.PORT || 3000}`),
 );
