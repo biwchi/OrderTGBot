@@ -1,14 +1,14 @@
-import express, { Application as ExpressApplication, Handler } from "express";
+import express, { Application, Handler } from "express";
 import "reflect-metadata";
-import { menuControllers } from "./menu/controllers";
-import { MetadataKeys } from "./utils/metadata.keys";
-import { IRouter } from "./utils/handlers.decorator";
-import { Controllers } from "./types";
+import { controllers } from './server/controllers';
+import { Controllers } from './server/types';
+import { MetadataKeys } from './server/utils/metadata.keys';
+import { IRouter } from './server/utils/handlers.decorator';
 
-class Application {
-  private readonly _instance: ExpressApplication;
+class ExpressApplication {
+  private readonly _instance: Application;
 
-  get instance(): ExpressApplication {
+  get instance(): Application {
     return this._instance;
   }
 
@@ -20,14 +20,10 @@ class Application {
   }
 
   private registerRouters() {
-    this.mapRouters(menuControllers);
-  }
-
-  private mapRouters(controlles: Controllers) {
     const info: Array<{ api: string; handler: string }> = [];
 
-    controlles.forEach((controller) => {
-      const constrollerInstance: { [handleName: string]: Handler } = controller.instance;
+    controllers.forEach((controller) => {
+      const constrollerInstance: { [handleName: string]: any } = controller.instance;
       const controllerClass = controller._class;
 
       const basePath: string = Reflect.getMetadata(MetadataKeys.BASE_PATH, controllerClass);
@@ -52,6 +48,8 @@ class Application {
 
     console.table(info);
   }
+
+  private mapRouters(controlles: Controllers) {}
 }
 
-export default new Application();
+export default new ExpressApplication();

@@ -1,7 +1,7 @@
-import Controller from "../../utils/controller.decorator";
-import { Get } from "../../utils/handlers.decorator";
-import { MenuService } from "../services/MenuService";
 import { Request, Response } from "express";
+import Controller from '../utils/controller.decorator';
+import { MenuService } from '../services/MenuService';
+import { Get } from '../utils/handlers.decorator';
 
 @Controller("/menu")
 export class MenuController {
