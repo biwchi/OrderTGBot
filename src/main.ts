@@ -12,5 +12,8 @@ server.listen(process.env.PORT || 3000, () =>
   console.log(`Server started on port ${process.env.PORT || 3000}`),
 );
 
-process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGINT", () => {
+  bot.stop("SIGINT")
+  server.close(() => console.log("Server closed"));
+});
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
