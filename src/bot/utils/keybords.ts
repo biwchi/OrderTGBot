@@ -10,7 +10,7 @@ export function getMainKeyboard() {
 
 export async function getOrderAddressesKeyboard() {
   const addresses = await prisma.orderAddress.findMany();
-  console.log(addresses)
+
   return Markup.inlineKeyboard(
     addresses.map((address) => {
       return Markup.button.callback(address.title, `address_${address.id}`);
