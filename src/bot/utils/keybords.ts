@@ -2,9 +2,14 @@ import { Markup } from "telegraf";
 import prisma from "../../client";
 
 export function getMainKeyboard() {
+  return Markup.inlineKeyboard([Markup.button.callback("⚙️ Настройки", "settings")]);
+}
+
+export function getSettingsKeyboard() {
   return Markup.inlineKeyboard([
-    Markup.button.webApp("Открыть меню", process.env.WEB_APP_URL || ""),
-    Markup.button.callback("Настройки", "settings"),
+    [Markup.button.callback("📱 Изменить номер телефона", "changePhoneNumber")],
+    [Markup.button.callback("🗺️ Изменить адрес доставки", "changeDeliveryAddress")],
+    [Markup.button.callback("📍 Изменить точку доставки", "changeOrderAddress")],
   ]);
 }
 
