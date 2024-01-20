@@ -10,28 +10,31 @@ function prepareMessage(ctx: Context, message: string) {
   return `: ${message}`;
 }
 
+const { combine, timestamp, printf } = format;
+const customFormat = printf(({ level, message, timestamp }) => {
+  return `${timestamp} [${level.toLocaleUpperCase()}]: ${message}`;
+});
+
 const loggerBase = createLogger({
   transports: [
-    new winston.transports.Console(),
     new winston.transports.File({ filename: "./logs/error.log", level: "error" }),
+    new winston.transports.File({ filename: "./logs/info.log", level: "info" }),
     new winston.transports.File({ filename: "./logs/debug.log", level: "debug" }),
+    new winston.transports.Console(),
   ],
-  format: format.simple(),
+  level: "debug",
+  format: combine(timestamp(), customFormat),
 });
 
 const logger = {
-  debugWithCtx(ctx: Context, message: string) {
-    return loggerBase.debug(prepareMessage(ctx, message));
+  debug(message: string, ctx?: Context) {
+    return loggerBase.debug(ctx ? prepareMessage(ctx, message) : message);
   },
-  errorWithCtx(ctx: Context, message: string) {
-    return loggerBase.error(prepareMessage(ctx, message));
+  info(message: string, ctx?: Context) {
+    return loggerBase.info(ctx ? prepareMessage(ctx, message) : message);
   },
-
-  debug(message: string) {
-    return loggerBase.debug(message);
-  },
-  error(message: string) {
-    return loggerBase.error(message);
+  error(message: string, ctx?: Context) {
+    return loggerBase.error(ctx ? prepareMessage(ctx, message) : message);
   },
 };
 
