@@ -1,111 +1,58 @@
-import { Composer, Context, Markup, Scenes } from "telegraf";
-import { callbackQuery, message } from "telegraf/filters";
-import { ScenesId } from "../../scenes";
-import { SetupContext, TGContext } from "../../../bot";
-import { getOrderAddressesKeyboard } from "../../utils/keybords";
 import prisma from "../../../client";
-import { RegEx } from "../../../utils/regex";
+import logger from "../../../utils/logger";
 
-const setup = new Scenes.WizardScene<SetupContext>(
-  ScenesId.SETUP,
-  async (ctx) => {
-    const addressesButtons = await getOrderAddressesKeyboard();
+import { Scenes } from "telegraf";
+import { ScenesId } from "../../scenes";
+import { SetupContext } from "../../context";
+import { getOrderAddressesKeyboard } from "../../utils/keybords";
+import { step1, step2, step3 } from "./steps";
 
-    if (!ctx.orderAddress) {
-      await ctx.reply("Выберите адрес откуда вы хотите сделать заказ", addressesButtons);
-    }
+const setup = new Scenes.WizardScene<SetupContext>(ScenesId.SETUP, step1, step2, step3);
 
-    return ctx.wizard.next();
-  },
-  Composer.on(callbackQuery("data"), async (ctx) => {
-    const { data } = ctx.callbackQuery;
-    console.log(data);
+setup.enter(async (ctx) => {
+  const addressesButtons = await getOrderAddressesKeyboard();
+  ctx.session.setupSession = {};
+  await ctx.reply("Выберите адрес откуда вы хотите сделать заказ", addressesButtons);
+});
 
-    if (!data.startsWith("address_")) {
-      return;
-    }
+setup.leave(async (ctx) => {
+  if (!ctx.session.deliveryAddress || !ctx.session.phoneNumber || !ctx.session.orderAddress) {
+    await ctx.scene.reenter();
+    return;
+  }
 
-    let addressId = Number(data.split("_")[1]);
+  if (!ctx.from) {
+    return;
+  }
 
-    const orderAddress = await prisma.orderAddress.findFirst({
-      where: {
-        id: addressId,
+  try {
+    const newUser = await prisma.user.create({
+      data: {
+        deliveryAddress: ctx.session.deliveryAddress,
+        firstName: ctx.from.first_name,
+        lastName: ctx.from.last_name || null,
+        orderAddress: {
+          connect: {
+            id: ctx.session.orderAddress?.id,
+          },
+        },
+        phoneNumber: ctx.session.phoneNumber,
+        telegramId: ctx.from.id,
+        username: ctx.from.username || null,
       },
     });
 
-    if (!orderAddress) {
-      await ctx.reply("Адрес не найден");
-      return;
-    }
+    logger.debug(`User created: ${JSON.stringify(newUser)}`, ctx);
+  } catch (error) {
+    logger.error(JSON.stringify(error), ctx);
 
-    ctx;
-    ctx.answerCbQuery();
+    await ctx.reply("❌ Произошла ошибка при регистрации. Попробуйте ещё раз");
+    await ctx.scene.reenter();
 
-    await ctx.reply(
-      'Нажмите на кнопку "📱 Отправить телефон" или введите его вручную в международном формате +998711234567',
-      Markup.keyboard([Markup.button.contactRequest("Отправить номер телефона")]).resize(),
-    );
+    return;
+  }
 
-    return ctx.wizard.next();
-  }),
-  async (ctx) => {
-    if (!ctx.message) {
-      return;
-    }
-
-    if ("contact" in ctx.message) {
-      ctx.phoneNumber = ctx.message.contact.phone_number;
-    }
-
-    if ("text" in ctx.message && RegExp(RegEx.PHONE).test(ctx.message.text)) {
-      ctx.phoneNumber = ctx.message.text;
-    } else {
-      return await ctx.reply("Неверный формат номера");
-    }
-
-    if (!ctx.phoneNumber) {
-      return await ctx.reply(
-        'Нажмите на кнопку "📱 Отправить телефон" или введите его вручную в международном формате +998711234567',
-        Markup.keyboard([Markup.button.contactRequest("Отправить номер телефона")]).resize(),
-      );
-    }
-
-    if (!ctx.deliveryAddress) {
-      await ctx.reply(
-        "Введите или отправите нам адрес доставки",
-        Markup.keyboard([Markup.button.locationRequest("Отправить адрес")]).resize(),
-      );
-    }
-
-    return ctx.wizard.next();
-  },
-  async (ctx) => {
-    if (!ctx.message) {
-      return;
-    }
-
-    if ("location" in ctx.message) {
-      ctx.deliveryAddress = ctx.message.location;
-    }
-
-    if ("text" in ctx.message) {
-      ctx.deliveryAddress = ctx.message.text;
-    }
-
-    ctx.scene.leave();
-  },
-);
-
-setup.leave(async (ctx) => {
-  await ctx.reply("Вы зарегерированы! Ваши данные:");
-  await ctx.replyWithMarkdownV2(
-    "```json\n" +
-      JSON.stringify({
-        "Адресс доставки": ctx.deliveryAddress,
-        "Номер телефона": ctx.phoneNumber,
-        Точка: ctx.orderAddress?.title,
-      }) +
-      "\n```",
-  );
+  ctx.scene.enter(ScenesId.START);
 });
+
 export default setup;
