@@ -16,7 +16,11 @@ setup.enter(async (ctx) => {
 });
 
 setup.leave(async (ctx) => {
-  if (!ctx.session.deliveryAddress || !ctx.session.phoneNumber || !ctx.session.orderAddress) {
+  if (
+    !ctx.session.setupSession.deliveryAddress ||
+    !ctx.session.setupSession.phoneNumber ||
+    !ctx.session.setupSession.orderAddress
+  ) {
     await ctx.scene.reenter();
     return;
   }
@@ -28,15 +32,15 @@ setup.leave(async (ctx) => {
   try {
     const newUser = await prisma.user.create({
       data: {
-        deliveryAddress: ctx.session.deliveryAddress,
+        deliveryAddress: ctx.session.setupSession.deliveryAddress,
         firstName: ctx.from.first_name,
         lastName: ctx.from.last_name || null,
         orderAddress: {
           connect: {
-            id: ctx.session.orderAddress?.id,
+            id: ctx.session.setupSession.orderAddress?.id,
           },
         },
-        phoneNumber: ctx.session.phoneNumber,
+        phoneNumber: ctx.session.setupSession.phoneNumber,
         telegramId: ctx.from.id,
         username: ctx.from.username || null,
       },

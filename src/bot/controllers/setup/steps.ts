@@ -36,7 +36,7 @@ function saveOrderAddress() {
     }
 
     ctx.answerCbQuery();
-    ctx.session.orderAddress = orderAddress;
+    ctx.session.setupSession.orderAddress = orderAddress;
 
     await ctx.reply(
       'Нажмите на кнопку "📱 Отправить телефон" или ✍️ введите его вручную в международном формате +998711234567.',
@@ -55,9 +55,9 @@ export async function getPhoneNumber(ctx: SetupContext) {
   }
 
   if ("contact" in ctx.message) {
-    ctx.session.phoneNumber = ctx.message.contact.phone_number;
+    ctx.session.setupSession.phoneNumber = ctx.message.contact.phone_number;
   } else if ("text" in ctx.message && RegExp(RegEx.PHONE).test(ctx.message.text)) {
-    ctx.session.phoneNumber = ctx.message.text;
+    ctx.session.setupSession.phoneNumber = ctx.message.text;
   } else {
     return await ctx.reply("❌ Неверный формат номера.");
   }
@@ -88,14 +88,14 @@ async function getLocation(ctx: SetupContext) {
       const addressJson = (await addressResponse.json()) as GeocodeResponseAddress;
 
       const addressString = `${addressJson.address.county}, ${addressJson.address.quarter} ${addressJson.address.house_number}`;
-      ctx.session.deliveryAddress = addressString;
+      ctx.session.setupSession.deliveryAddress = addressString;
     } catch (error) {
       logger.error(JSON.stringify(error), ctx);
       await ctx.reply("❌ Произошла ошибка. Попробуйте ещё раз или введите адрес вручную.");
       return;
     }
   } else if ("text" in ctx.message) {
-    ctx.session.deliveryAddress = ctx.message.text;
+    ctx.session.setupSession.deliveryAddress = ctx.message.text;
   } else {
     return await ctx.reply("✍️ Напишите или отправьте нам адрес доставки.");
   }

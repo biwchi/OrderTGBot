@@ -1,5 +1,4 @@
 import prisma from "../../../client";
-import logger from "../../../utils/logger";
 
 import { Scenes } from "telegraf";
 import { getMainKeyboard } from "../../utils/keybords";
