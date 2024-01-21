@@ -1,15 +1,17 @@
 import prisma from "../../client";
 import { Markup } from "telegraf";
+import { ScenesId } from "../scenes";
+import { SettingsScenes } from "../controllers/settings";
 
 export function getMainKeyboard() {
-  return Markup.inlineKeyboard([Markup.button.callback("⚙️ Настройки", "settings")]);
+  return Markup.inlineKeyboard([Markup.button.callback("⚙️ Настройки", ScenesId.SETTINGS)]);
 }
 
 export function getSettingsKeyboard() {
   return Markup.inlineKeyboard([
-    [Markup.button.callback("📱 Изменить номер телефона", "changePhoneNumber")],
-    [Markup.button.callback("🗺️ Изменить адрес доставки", "changeDeliveryAddress")],
-    [Markup.button.callback("📍 Изменить точку доставки", "changeOrderAddress")],
+    [Markup.button.callback("📱 Изменить номер телефона", SettingsScenes.PHONE_NUMBER)],
+    [Markup.button.callback("🗺️ Изменить адрес доставки", SettingsScenes.DELIVERY_ADDRESS)],
+    [Markup.button.callback("📍 Изменить точку доставки", SettingsScenes.ORDER_ADDRESS)],
   ]);
 }
 
