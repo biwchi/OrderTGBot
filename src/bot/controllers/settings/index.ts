@@ -12,13 +12,11 @@ export const enum SettingsScenes {
 
 const settings = new Scenes.BaseScene<SetupContext>(ScenesId.SETTINGS);
 
-settings.enter(async (ctx) => {
-  const settingsKeyboard = getSettingsKeyboard();
-  await ctx.reply("⚙️ Чтобы вы хотели изменить?", settingsKeyboard);
-});
+settings.enter(
+  async (ctx) => await ctx.reply("⚙️ Чтобы вы хотели изменить?", getSettingsKeyboard()),
+);
 
 settings.action(SettingsScenes.PHONE_NUMBER, async (ctx) => {
-  console.log("try to change phone number");
   await ctx.scene.enter(SettingsScenes.PHONE_NUMBER);
   await ctx.answerCbQuery();
 });

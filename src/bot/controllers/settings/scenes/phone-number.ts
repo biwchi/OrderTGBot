@@ -7,6 +7,7 @@ import { SettingsScenes } from "..";
 import { RegEx } from "../../../../utils/regex";
 import { SetupContext } from "../../../context";
 import { ScenesId } from "../../../scenes";
+import { errorHandlerCtx } from '../../../utils';
 
 const phoneNumber = new Scenes.BaseScene<SetupContext>(SettingsScenes.PHONE_NUMBER);
 
@@ -20,10 +21,6 @@ phoneNumber.enter(async (ctx) => {
 });
 
 phoneNumber.on([message("contact"), message("text")], async (ctx) => {
-  if (!ctx.message) {
-    return;
-  }
-
   if ("contact" in ctx.message) {
     ctx.session.setupSession.phoneNumber = ctx.message.contact.phone_number;
   } else if ("text" in ctx.message && RegExp(RegEx.PHONE).test(ctx.message.text)) {
@@ -46,8 +43,7 @@ async function savePhoneNumber(ctx: SetupContext) {
 
     await ctx.reply("✅ Номер телефона успешно изменен.");
   } catch (error) {
-    logger.error(JSON.stringify(error), ctx);
-    await ctx.reply("❌ Произошла ошибка. Попробуйте ещё раз.");
+    await errorHandlerCtx(error, ctx);
   }
 
   await ctx.scene.enter(ScenesId.SETTINGS);
