@@ -10,7 +10,6 @@ export default interface SetupContext extends BaseContext {
       orderAddress?: OrderAddress;
       deliveryAddress?: string;
     };
-    user: User;
   };
 
   scene: Scenes.SceneContextScene<SetupContext, Scenes.WizardSessionData>;
