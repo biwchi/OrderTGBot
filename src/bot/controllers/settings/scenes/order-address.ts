@@ -5,7 +5,8 @@ import { callbackQuery } from "telegraf/filters";
 import { SettingsScenes } from "..";
 import { SetupContext } from "../../../context";
 import { getOrderAddressesKeyboard } from "../../../utils/keybords";
-import logger from '../../../../utils/logger';
+import logger from "../../../../utils/logger";
+import { ScenesId } from "../../../scenes";
 
 const orderAddress = new Scenes.BaseScene<SetupContext>(SettingsScenes.ORDER_ADDRESS);
 
@@ -33,24 +34,24 @@ orderAddress.on(callbackQuery("data"), async (ctx) => {
     return;
   }
 
-  ctx.answerCbQuery();
   ctx.session.setupSession.orderAddress = orderAddress;
-
-  return ctx.scene.leave();
+  
+  await ctx.answerCbQuery();
+  await saveOrderAddress(ctx);
 });
 
-orderAddress.leave(async (ctx) => {
+async function saveOrderAddress(ctx: SetupContext) {
   if (!ctx.session.setupSession.orderAddress) {
     await ctx.scene.reenter();
     return;
   }
 
-  const userId = ctx.session.user.id;
+  const userId = ctx.from?.id;
 
   try {
     prisma.user.update({
       where: {
-        id: userId,
+        telegramId: userId,
       },
       data: {
         orderAddress: {
@@ -60,10 +61,14 @@ orderAddress.leave(async (ctx) => {
         },
       },
     });
+
+    await ctx.reply("✅ Адрес доставки успешно изменен.");
   } catch (error) {
     logger.error(JSON.stringify(error), ctx);
     await ctx.reply("❌ Произошла ошибка. Попробуйте ещё раз.");
   }
-});
+
+  await ctx.scene.enter(ScenesId.SETTINGS);
+}
 
 export default orderAddress;

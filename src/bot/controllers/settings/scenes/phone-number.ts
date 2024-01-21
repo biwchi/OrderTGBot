@@ -1,7 +1,7 @@
 import prisma from "../../../../client";
 import logger from "../../../../utils/logger";
 
-import { Scenes } from "telegraf";
+import { Markup, Scenes } from "telegraf";
 import { message } from "telegraf/filters";
 import { SettingsScenes } from "..";
 import { RegEx } from "../../../../utils/regex";
@@ -11,7 +11,12 @@ import { ScenesId } from "../../../scenes";
 const phoneNumber = new Scenes.BaseScene<SetupContext>(SettingsScenes.PHONE_NUMBER);
 
 phoneNumber.enter(async (ctx) => {
-  await ctx.reply("✍️ Введите или отправьте нам новый номер телефона");
+  await ctx.reply(
+    "✍️ Введите или отправьте нам новый номер телефона",
+    Markup.keyboard([Markup.button.contactRequest("Отправить номер")])
+      .resize()
+      .oneTime(),
+  );
 });
 
 phoneNumber.on([message("contact"), message("text")], async (ctx) => {
@@ -27,25 +32,25 @@ phoneNumber.on([message("contact"), message("text")], async (ctx) => {
     return await ctx.reply("❌ Неверный формат номера.");
   }
 
-  ctx.scene.leave();
+  await savePhoneNumber(ctx);
 });
 
-phoneNumber.leave(async (ctx) => {
-  const userId = ctx.session.user.id;
-
+async function savePhoneNumber(ctx: SetupContext) {
   try {
     await prisma.user.update({
-      where: { id: userId },
+      where: { telegramId: ctx.from?.id },
       data: {
         phoneNumber: ctx.session.setupSession.phoneNumber,
       },
     });
+
+    await ctx.reply("✅ Номер телефона успешно изменен.");
   } catch (error) {
     logger.error(JSON.stringify(error), ctx);
     await ctx.reply("❌ Произошла ошибка. Попробуйте ещё раз.");
   }
 
   await ctx.scene.enter(ScenesId.SETTINGS);
-});
+}
 
 export default phoneNumber;
