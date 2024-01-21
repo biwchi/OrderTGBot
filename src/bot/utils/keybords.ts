@@ -1,5 +1,5 @@
-import { Markup } from "telegraf";
 import prisma from "../../client";
+import { Markup } from "telegraf";
 
 export function getMainKeyboard() {
   return Markup.inlineKeyboard([Markup.button.callback("⚙️ Настройки", "settings")]);
