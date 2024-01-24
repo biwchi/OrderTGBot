@@ -26,8 +26,6 @@ start.enter(async (ctx) => {
   await ctx.reply(welcomeMessage, getMainKeyboard());
 });
 
-start.leave((ctx) => {});
-
 start.action("settings", (ctx) => {
   ctx.scene.enter(ScenesId.SETTINGS);
   ctx.answerCbQuery();

@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
 import Controller from '../utils/controller.decorator';
+
+import { Request, Response } from "express";
 import { MenuService } from '../services/MenuService';
 import { Get } from '../utils/handlers.decorator';
 

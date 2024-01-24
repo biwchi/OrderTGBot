@@ -4,25 +4,20 @@ import logger from "../../../utils/logger";
 import { Scenes } from "telegraf";
 import { ScenesId } from "../../scenes";
 import { SetupContext } from "../../context";
-import { getOrderAddressesKeyboard } from "../../utils/keybords";
-import { step1, step2, step3 } from "./steps";
+import { SettingsScenes } from "../settings";
+import { errorHandlerCtx } from "../../utils";
 
-const setup = new Scenes.WizardScene<SetupContext>(ScenesId.SETUP, step1, step2, step3);
+const setup = new Scenes.BaseScene<SetupContext>(ScenesId.SETUP);
+const createUser = new Scenes.BaseScene<SetupContext>(ScenesId.CREATE_USER);
 
 setup.enter(async (ctx) => {
-  const addressesButtons = await getOrderAddressesKeyboard();
-  ctx.session.setupSession = {};
-  await ctx.reply("Выберите адрес откуда вы хотите сделать заказ", addressesButtons);
+  ctx.session.setupSession.isSetup = true;
+  await ctx.scene.enter(SettingsScenes.ORDER_ADDRESS);
 });
 
-setup.leave(async (ctx) => {
-  if (
-    !ctx.session.setupSession.deliveryAddress ||
-    !ctx.session.setupSession.phoneNumber ||
-    !ctx.session.setupSession.orderAddress
-  ) {
-    await ctx.scene.reenter();
-    return;
+createUser.enter(async (ctx) => {
+  if (Object.values(ctx.session.setupSession).some((v) => v === null || v === undefined)) {
+    return await ctx.scene.enter(ScenesId.SETUP);
   }
 
   if (!ctx.from) {
@@ -32,15 +27,15 @@ setup.leave(async (ctx) => {
   try {
     const newUser = await prisma.user.create({
       data: {
-        deliveryAddress: ctx.session.setupSession.deliveryAddress,
+        deliveryAddress: ctx.session.setupSession.deliveryAddress!,
         firstName: ctx.from.first_name,
         lastName: ctx.from.last_name || null,
         orderAddress: {
           connect: {
-            id: ctx.session.setupSession.orderAddress?.id,
+            id: ctx.session.setupSession.orderAddress!.id,
           },
         },
-        phoneNumber: ctx.session.setupSession.phoneNumber,
+        phoneNumber: ctx.session.setupSession.phoneNumber!,
         telegramId: ctx.from.id,
         username: ctx.from.username || null,
       },
@@ -48,15 +43,14 @@ setup.leave(async (ctx) => {
 
     logger.debug(`User created: ${JSON.stringify(newUser)}`, ctx);
   } catch (error) {
-    logger.error(JSON.stringify(error), ctx);
-
-    await ctx.reply("❌ Произошла ошибка при регистрации. Попробуйте ещё раз");
-    await ctx.scene.reenter();
-
-    return;
+    await errorHandlerCtx(error, ctx);
+    return await ctx.scene.enter(ScenesId.SETUP);
   }
 
-  ctx.scene.enter(ScenesId.START);
+  ctx.session.setupSession.isSetup = false
+  await ctx.scene.enter(ScenesId.START);
 });
 
-export default setup;
+const SetupStage = new Scenes.Stage<SetupContext>([setup, createUser]);
+
+export default SetupStage;
