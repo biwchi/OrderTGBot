@@ -7,18 +7,21 @@ import { SettingsScenes } from "..";
 import { message } from "telegraf/filters";
 import { GeocodeResponseAddress } from "../../setup/types";
 import { ScenesId } from "../../../scenes";
-import { errorHandlerCtx } from "../../../utils";
+import { BACK_BUTTON, errorHandlerCtx } from "../../../utils";
+import { backAction } from "../../../utils/back-button-action";
 
 const deliveryAddress = new Scenes.BaseScene<SetupContext>(SettingsScenes.DELIVERY_ADDRESS);
 
 deliveryAddress.enter(async (ctx) => {
   await ctx.reply(
     "✍️ Введите или отправите нам адрес доставки.",
-    Markup.keyboard([Markup.button.locationRequest("Отправить адрес")])
+    Markup.keyboard([Markup.button.locationRequest("Отправить адрес"), BACK_BUTTON])
       .resize()
       .oneTime(),
   );
 });
+
+deliveryAddress.hears(...backAction(ScenesId.SETTINGS));
 
 deliveryAddress.on([message("location"), message("text")], async (ctx) => {
   if ("location" in ctx.message) {
@@ -42,8 +45,9 @@ deliveryAddress.on([message("location"), message("text")], async (ctx) => {
     return await ctx.reply("✍️ Напишите или отправьте нам адрес доставки.");
   }
 
-  const { isSetup } = ctx.session.setupSession;
-  isSetup ? await ctx.scene.enter(ScenesId.CREATE_USER) : await saveDeliveryAddress(ctx);
+  ctx.session.setupSession.isSetup
+    ? await ctx.scene.enter(ScenesId.CREATE_USER)
+    : await saveDeliveryAddress(ctx);
 });
 
 async function saveDeliveryAddress(ctx: SetupContext) {

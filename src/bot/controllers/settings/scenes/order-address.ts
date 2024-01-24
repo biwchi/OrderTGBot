@@ -1,38 +1,36 @@
 import prisma from "../../../../client";
-import logger from "../../../../utils/logger";
 
-import { Scenes } from "telegraf";
+import { Markup, Scenes } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
 import { SettingsScenes } from "..";
 import { SetupContext } from "../../../context";
 import { getOrderAddressesKeyboard } from "../../../utils/keybords";
 import { ScenesId } from "../../../scenes";
 import { OrderAddress } from "@prisma/client";
-import { errorHandlerCtx } from "../../../utils";
+import { BACK_BUTTON, errorHandlerCtx } from "../../../utils";
+import { backAction } from "../../../utils/back-button-action";
 
 const orderAddress = new Scenes.BaseScene<SetupContext>(SettingsScenes.ORDER_ADDRESS);
 
-orderAddress.enter(
-  async (ctx) =>
-    await ctx.reply(
-      "🤖 Выберите адрес откуда вы хотите сделать заказ",
-      await getOrderAddressesKeyboard(),
-    ),
-);
+orderAddress.enter(async (ctx) => {
+  await ctx.reply("🤖", Markup.keyboard([BACK_BUTTON]).oneTime().resize());
+  await ctx.reply(
+    "👇 Выберите адрес откуда вы хотели бы сделать заказ:",
+    await getOrderAddressesKeyboard(),
+  );
+});
+  
+orderAddress.hears(...backAction(ScenesId.SETTINGS));
 
-orderAddress.on(callbackQuery("data"), async (ctx) => {
-  const { data } = ctx.callbackQuery;
-  const addressId = Number(data.split("_")[1]);
-  const isSetup = ctx.session.setupSession.isSetup;
-
-  if (!data.startsWith("address_") || addressId < 1) {
+orderAddress.action(/^address_\d+/, async (ctx) => {
+  if (!("data" in ctx.callbackQuery)) {
     return;
   }
 
+  const id = Number(ctx.callbackQuery.data.split("_")[1]);
+
   const orderAddress = await prisma.orderAddress.findFirst({
-    where: {
-      id: addressId,
-    },
+    where: { id },
   });
 
   if (!orderAddress) {
@@ -42,7 +40,7 @@ orderAddress.on(callbackQuery("data"), async (ctx) => {
 
   await ctx.answerCbQuery();
 
-  if (isSetup) {
+  if (ctx.session.setupSession.isSetup) {
     ctx.session.setupSession.orderAddress = orderAddress;
     return await ctx.scene.enter(SettingsScenes.PHONE_NUMBER);
   }

@@ -3,6 +3,8 @@ import { Markup } from "telegraf";
 import { ScenesId } from "../scenes";
 import { SettingsScenes } from "../controllers/settings";
 
+export const BACK_BUTTON = "⬅️ Назад";
+
 export function getMainKeyboard() {
   return Markup.inlineKeyboard([Markup.button.callback("⚙️ Настройки", ScenesId.SETTINGS)]);
 }
