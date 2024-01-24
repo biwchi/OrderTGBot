@@ -1,14 +1,13 @@
-import BaseContext from "./base-context";
+import { OrderAddress } from "@prisma/client";
+import { Context, Scenes } from "telegraf";
 
-import { OrderAddress, User } from "@prisma/client";
-import { Scenes } from "telegraf";
-
-export default interface SetupContext extends BaseContext {
+export default interface SetupContext extends Context {
   session: Scenes.WizardSession & {
     setupSession: {
       phoneNumber?: string;
       orderAddress?: OrderAddress;
       deliveryAddress?: string;
+      isSetup?: boolean;
     };
   };
 
