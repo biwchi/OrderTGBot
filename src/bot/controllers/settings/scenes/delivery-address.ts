@@ -42,7 +42,8 @@ deliveryAddress.on([message("location"), message("text")], async (ctx) => {
     return await ctx.reply("✍️ Напишите или отправьте нам адрес доставки.");
   }
 
-  await saveDeliveryAddress(ctx);
+  const { isSetup } = ctx.session.setupSession;
+  isSetup ? await ctx.scene.enter(ScenesId.CREATE_USER) : await saveDeliveryAddress(ctx);
 });
 
 async function saveDeliveryAddress(ctx: SetupContext) {

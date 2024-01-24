@@ -23,6 +23,7 @@ orderAddress.enter(
 orderAddress.on(callbackQuery("data"), async (ctx) => {
   const { data } = ctx.callbackQuery;
   const addressId = Number(data.split("_")[1]);
+  const isSetup = ctx.session.setupSession.isSetup;
 
   if (!data.startsWith("address_") || addressId < 1) {
     return;
@@ -40,6 +41,12 @@ orderAddress.on(callbackQuery("data"), async (ctx) => {
   }
 
   await ctx.answerCbQuery();
+
+  if (isSetup) {
+    ctx.session.setupSession.orderAddress = orderAddress;
+    return await ctx.scene.enter(SettingsScenes.PHONE_NUMBER);
+  }
+
   await saveOrderAddress(ctx, orderAddress);
 });
 

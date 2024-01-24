@@ -1,5 +1,4 @@
 import prisma from "../../../../client";
-import logger from "../../../../utils/logger";
 
 import { Markup, Scenes } from "telegraf";
 import { message } from "telegraf/filters";
@@ -7,7 +6,7 @@ import { SettingsScenes } from "..";
 import { RegEx } from "../../../../utils/regex";
 import { SetupContext } from "../../../context";
 import { ScenesId } from "../../../scenes";
-import { errorHandlerCtx } from '../../../utils';
+import { errorHandlerCtx } from "../../../utils";
 
 const phoneNumber = new Scenes.BaseScene<SetupContext>(SettingsScenes.PHONE_NUMBER);
 
@@ -29,7 +28,8 @@ phoneNumber.on([message("contact"), message("text")], async (ctx) => {
     return await ctx.reply("❌ Неверный формат номера.");
   }
 
-  await savePhoneNumber(ctx);
+  const { isSetup } = ctx.session.setupSession;
+  isSetup ? await ctx.scene.enter(SettingsScenes.DELIVERY_ADDRESS) : await savePhoneNumber(ctx);
 });
 
 async function savePhoneNumber(ctx: SetupContext) {
