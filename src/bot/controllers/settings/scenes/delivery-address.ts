@@ -13,7 +13,7 @@ const deliveryAddress = new Scenes.BaseScene<SetupContext>(SettingsScenes.DELIVE
 
 deliveryAddress.enter(async (ctx) => {
   await ctx.reply(
-    "✍️ Введите или отправьте нам новый адрес доставки",
+    "✍️ Введите или отправите нам адрес доставки.",
     Markup.keyboard([Markup.button.locationRequest("Отправить адрес")])
       .resize()
       .oneTime(),

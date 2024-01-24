@@ -12,7 +12,7 @@ const phoneNumber = new Scenes.BaseScene<SetupContext>(SettingsScenes.PHONE_NUMB
 
 phoneNumber.enter(async (ctx) => {
   await ctx.reply(
-    "✍️ Введите или отправьте нам новый номер телефона",
+    'Нажмите на кнопку "📱 Отправить телефон" или ✍️ введите его вручную в международном формате +998711234567.',
     Markup.keyboard([Markup.button.contactRequest("Отправить номер")])
       .resize()
       .oneTime(),
