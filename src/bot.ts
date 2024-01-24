@@ -1,14 +1,17 @@
 import start from "./bot/controllers/start";
-import setup from "./bot/controllers/setup";
+import setupStage from "./bot/controllers/setup";
 import settingsStage from "./bot/controllers/settings";
 
 import { Scenes, Telegraf, session } from "telegraf";
 import { ScenesId } from "./bot/scenes";
 import { AppContext } from "./bot/context";
-import logger from "./utils/logger";
 
 const bot = new Telegraf<AppContext>(process.env.BOT_TOKEN || "");
-const stage = new Scenes.Stage<AppContext>([start, setup, ...settingsStage.scenes.values()]);
+const stage = new Scenes.Stage<AppContext>([
+  start,
+  ...setupStage.scenes.values(),
+  ...settingsStage.scenes.values(),
+]);
 
 bot.use(
   session({

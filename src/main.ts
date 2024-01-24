@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
-import { createServer } from "http";
 import expressApplication from "./express";
 import bot from "./bot";
+
+import { createServer } from "http";
 
 dotenv.config();
 bot.launch();

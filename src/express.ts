@@ -1,9 +1,8 @@
-import express, { Application, Handler } from "express";
 import "reflect-metadata";
-import { controllers } from './server/controllers';
-import { Controllers } from './server/types';
-import { MetadataKeys } from './server/utils/metadata.keys';
-import { IRouter } from './server/utils/handlers.decorator';
+import express, { Application, Handler } from "express";
+import { controllers } from "./server/controllers";
+import { MetadataKeys } from "./server/utils/metadata.keys";
+import { IRouter } from "./server/utils/handlers.decorator";
 
 class ExpressApplication {
   private readonly _instance: Application;
@@ -48,8 +47,6 @@ class ExpressApplication {
 
     console.table(info);
   }
-
-  private mapRouters(controlles: Controllers) {}
 }
 
 export default new ExpressApplication();
